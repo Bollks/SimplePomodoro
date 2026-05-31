@@ -4,4 +4,4 @@
 .packages
 build/
 .superpowers/
-
+.worktrees/
