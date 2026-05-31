@@ -5,3 +5,6 @@
 build/
 .superpowers/
 .worktrees/
+
+android/.gradle/
+android/local.properties
