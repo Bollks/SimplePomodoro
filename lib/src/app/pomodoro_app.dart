@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../dial/dial_timer_page.dart';
+import '../feedback/feedback_service.dart';
+
 class PomodoroApp extends StatelessWidget {
   const PomodoroApp({super.key});
 
@@ -12,7 +15,9 @@ class PomodoroApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2F8F72)),
         useMaterial3: true,
       ),
-      home: const SizedBox.expand(),
+      home: DialTimerPage(
+        feedbackService: FeedbackService(),
+      ),
     );
   }
 }
