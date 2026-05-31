@@ -5,6 +5,8 @@
 build/
 .superpowers/
 .worktrees/
+.idea/
+*.iml
 
 android/.gradle/
 android/local.properties
