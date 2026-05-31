@@ -10,10 +10,7 @@ import 'dial_painter.dart';
 import 'dial_timer_controller.dart';
 
 class DialTimerPage extends StatefulWidget {
-  const DialTimerPage({
-    required this.feedbackService,
-    super.key,
-  });
+  const DialTimerPage({required this.feedbackService, super.key});
 
   final FeedbackService feedbackService;
 
@@ -23,6 +20,12 @@ class DialTimerPage extends StatefulWidget {
 
 class _DialTimerPageState extends State<DialTimerPage>
     with WidgetsBindingObserver {
+  static const Color _idleBackgroundColor = Color(0xFFF5F1E8);
+  static const Color _runningBackgroundColor = Colors.black;
+  static const Duration _backgroundTransitionDuration = Duration(
+    milliseconds: 200,
+  );
+
   final DialGeometry _geometry = const DialGeometry();
   late final DialTimerController _controller;
 
@@ -143,38 +146,49 @@ class _DialTimerPageState extends State<DialTimerPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F1E8),
-      body: SafeArea(
-        child: Center(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final shortest = math.min(
-                constraints.maxWidth,
-                constraints.maxHeight,
-              );
-              final dialSide = shortest.clamp(260.0, 460.0).toDouble() * 0.9;
-              _dialSize = Size.square(dialSide);
+    final backgroundColor = _controller.isRunning
+        ? _runningBackgroundColor
+        : _idleBackgroundColor;
 
-              return GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTapUp: _handleTapUp,
-                onPanStart: _handlePanStart,
-                onPanUpdate: _handlePanUpdate,
-                onPanEnd: _handlePanEnd,
-                onPanCancel: _handlePanCancel,
-                child: SizedBox.square(
-                  dimension: dialSide,
-                  child: CustomPaint(
-                    painter: DialPainter(
-                      visualMinutes: _controller.visualMinutes,
-                      isRunning: _controller.isRunning,
-                      geometry: _geometry,
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: AnimatedContainer(
+        key: const Key('dial-timer-background'),
+        duration: _backgroundTransitionDuration,
+        decoration: BoxDecoration(color: backgroundColor),
+        width: double.infinity,
+        height: double.infinity,
+        child: SafeArea(
+          child: Center(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final shortest = math.min(
+                  constraints.maxWidth,
+                  constraints.maxHeight,
+                );
+                final dialSide = shortest.clamp(260.0, 460.0).toDouble() * 0.9;
+                _dialSize = Size.square(dialSide);
+
+                return GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTapUp: _handleTapUp,
+                  onPanStart: _handlePanStart,
+                  onPanUpdate: _handlePanUpdate,
+                  onPanEnd: _handlePanEnd,
+                  onPanCancel: _handlePanCancel,
+                  child: SizedBox.square(
+                    dimension: dialSide,
+                    child: CustomPaint(
+                      painter: DialPainter(
+                        visualMinutes: _controller.visualMinutes,
+                        isRunning: _controller.isRunning,
+                        geometry: _geometry,
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),

@@ -27,11 +27,20 @@ void main() {
     );
   }
 
+  AnimatedContainer backgroundContainer(WidgetTester tester) {
+    return tester.widget<AnimatedContainer>(
+      find.byKey(const Key('dial-timer-background')),
+    );
+  }
+
+  Color? backgroundColorOf(AnimatedContainer container) {
+    final decoration = container.decoration;
+    return decoration is BoxDecoration ? decoration.color : null;
+  }
+
   testWidgets('renders without visible text controls', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: DialTimerPage(feedbackService: FakeFeedbackService()),
-      ),
+      MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
     );
 
     expect(findDialPaint(), findsOneWidget);
@@ -42,9 +51,7 @@ void main() {
 
   testWidgets('center tap starts and second center tap resets', (tester) async {
     await tester.pumpWidget(
-      MaterialApp(
-        home: DialTimerPage(feedbackService: FakeFeedbackService()),
-      ),
+      MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
     );
 
     final center = tester.getCenter(findDialPaint());
@@ -57,14 +64,43 @@ void main() {
     expect(findDialPaint(), findsOneWidget);
   });
 
+  testWidgets('background darkens while running and restores when reset', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
+    );
+
+    expect(
+      backgroundColorOf(backgroundContainer(tester)),
+      const Color(0xFFF5F1E8),
+    );
+
+    final center = tester.getCenter(findDialPaint());
+    await tester.tapAt(center);
+    await tester.pump();
+
+    expect(
+      backgroundContainer(tester).duration,
+      const Duration(milliseconds: 200),
+    );
+    expect(backgroundColorOf(backgroundContainer(tester)), Colors.black);
+
+    await tester.tapAt(center);
+    await tester.pump();
+
+    expect(
+      backgroundColorOf(backgroundContainer(tester)),
+      const Color(0xFFF5F1E8),
+    );
+  });
+
   testWidgets('dragging the active edge updates selected minutes', (
     tester,
   ) async {
     final feedbackService = FakeFeedbackService();
     await tester.pumpWidget(
-      MaterialApp(
-        home: DialTimerPage(feedbackService: feedbackService),
-      ),
+      MaterialApp(home: DialTimerPage(feedbackService: feedbackService)),
     );
 
     const geometry = DialGeometry();
