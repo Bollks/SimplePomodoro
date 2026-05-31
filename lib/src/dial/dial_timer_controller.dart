@@ -4,8 +4,8 @@ import 'dial_constants.dart';
 import 'dial_geometry.dart';
 
 class DialTimerController extends ChangeNotifier {
-  DialTimerController({DialGeometry geometry = const DialGeometry()})
-    : _geometry = geometry;
+  DialTimerController({DialGeometry? geometry})
+    : _geometry = geometry ?? const DialGeometry();
 
   final DialGeometry _geometry;
 
