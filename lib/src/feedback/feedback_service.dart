@@ -14,12 +14,12 @@ class FeedbackService {
 
   Future<void> completed() async {
     await Future.wait<void>([
-      _vibrate(),
-      _playCompletionSound(),
+      vibrate(),
+      playCompletionSound(),
     ]);
   }
 
-  Future<void> _vibrate() async {
+  Future<void> vibrate() async {
     try {
       await HapticFeedback.vibrate();
     } catch (_) {
@@ -27,7 +27,7 @@ class FeedbackService {
     }
   }
 
-  Future<void> _playCompletionSound() async {
+  Future<void> playCompletionSound() async {
     try {
       await _channel.invokeMethod<void>('playCompletionSound');
     } catch (_) {
