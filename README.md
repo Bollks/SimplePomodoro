@@ -1,17 +1,23 @@
-# simple_pomodoro
+# Simple Pomodoro
 
-A new Flutter project.
+A minimal Flutter Pomodoro timer with a mechanical dial interface.
 
-## Getting Started
+## Features
 
-This project is a starting point for a Flutter application.
+- Drag the dial edge to set 5 to 120 minutes.
+- Tap the center button to start or reset the timer.
+- Show the countdown through the shrinking green dial sector.
+- Play completion feedback with sound and vibration.
 
-A few resources to get you started if this is your first Flutter project:
+## Development
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```sh
+flutter pub get
+flutter test
+flutter analyze
+flutter run
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## License
+
+MIT
