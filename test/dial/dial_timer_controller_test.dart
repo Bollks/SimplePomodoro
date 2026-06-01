@@ -47,6 +47,29 @@ void main() {
     expect(controller.visualMinutes, closeTo(20.5, 0.001));
   });
 
+  test('running timer continues below 5 minutes and then completes', () {
+    final controller = DialTimerController()..setSelectedMinutes(6);
+    final now = DateTime(2026, 5, 31, 12);
+
+    controller.start(now);
+    final stillRunning = controller.syncWithClock(
+      now.add(const Duration(minutes: 5, seconds: 30)),
+    );
+
+    expect(stillRunning, isFalse);
+    expect(controller.phase, DialTimerPhase.running);
+    expect(controller.remaining, const Duration(seconds: 30));
+    expect(controller.visualMinutes, closeTo(0.5, 0.001));
+
+    final completed = controller.syncWithClock(
+      now.add(const Duration(minutes: 6)),
+    );
+
+    expect(completed, isTrue);
+    expect(controller.phase, DialTimerPhase.idle);
+    expect(controller.remaining, const Duration(minutes: 5));
+  });
+
   test('completion resets to default 5 minutes', () {
     final controller = DialTimerController()..setSelectedMinutes(6);
     final now = DateTime(2026, 5, 31, 12);
