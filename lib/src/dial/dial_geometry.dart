@@ -21,7 +21,7 @@ class DialGeometry {
   }
 
   double angleForMinutes(num minutes) {
-    final clamped = clampMinutes(minutes);
+    final clamped = _clampVisualMinutes(minutes);
     final minuteOnDial = clamped % DialConstants.minutesPerLap;
     return minuteOnDial == 0
         ? 0
@@ -29,9 +29,16 @@ class DialGeometry {
   }
 
   double displaySweepForMinutes(num minutes) {
-    final clamped = clampMinutes(minutes);
+    final clamped = _clampVisualMinutes(minutes);
     final visibleMinutes = math.min(clamped, DialConstants.minutesPerLap);
     return visibleMinutes / DialConstants.minutesPerLap * twoPi;
+  }
+
+  double _clampVisualMinutes(num minutes) {
+    return minutes
+        .toDouble()
+        .clamp(0.0, DialConstants.maxMinutes.toDouble())
+        .toDouble();
   }
 
   double angleFromCenter(Size size, Offset position) {

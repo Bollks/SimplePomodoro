@@ -37,6 +37,16 @@ void main() {
     expect(geometry.displaySweepForMinutes(120), closeTo(math.pi * 2, 0.0001));
   });
 
+  test('visual mappings continue shrinking below the selection minimum', () {
+    expect(geometry.angleForMinutes(4), closeTo(math.pi * 2 * 4 / 60, 0.0001));
+    expect(
+      geometry.displaySweepForMinutes(4),
+      closeTo(math.pi * 2 * 4 / 60, 0.0001),
+    );
+    expect(geometry.angleForMinutes(0), closeTo(0, 0.0001));
+    expect(geometry.displaySweepForMinutes(0), closeTo(0, 0.0001));
+  });
+
   test('shortestClockwiseDelta handles crossing 12 o clock', () {
     final previous = math.pi * 2 - 0.05;
     final current = 0.05;
