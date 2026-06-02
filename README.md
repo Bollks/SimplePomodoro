@@ -4,10 +4,12 @@ A minimal Flutter Pomodoro timer with a mechanical dial interface.
 
 ## Features
 
-- Drag the dial edge to set 5 to 120 minutes.
-- Tap the center button to start or reset the timer.
-- Show the countdown through the shrinking green dial sector.
-- Play completion feedback with sound and vibration.
+
+- Drag the minute hand to choose 1 to 60 minutes.
+- Release the hand to start the timer.
+- Keep 12 o'clock as the zero-minute idle position.
+- Show the countdown through the returning minute hand.
+
 
 ## Development
 

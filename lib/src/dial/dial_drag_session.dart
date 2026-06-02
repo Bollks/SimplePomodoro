@@ -1,3 +1,4 @@
+import 'dial_constants.dart';
 import 'dial_geometry.dart';
 
 class DialDragSession {
@@ -16,14 +17,27 @@ class DialDragSession {
 
   int update(double currentAngle) {
     final normalized = geometry.normalizeAngle(currentAngle);
-    _accumulatedRadians += geometry.shortestClockwiseDelta(
-      _lastAngle,
-      normalized,
-    );
+    final delta = geometry.shortestClockwiseDelta(_lastAngle, normalized);
+    _accumulatedRadians = (_accumulatedRadians + delta)
+        .clamp(_minimumAccumulatedRadians, _maximumAccumulatedRadians)
+        .toDouble();
     _lastAngle = normalized;
 
     final rawMinutes =
-        _baseMinutes + _accumulatedRadians / DialGeometry.twoPi * 60;
+        _baseMinutes +
+        _accumulatedRadians / DialGeometry.twoPi * DialConstants.minutesPerLap;
     return geometry.snapMinutes(rawMinutes);
+  }
+
+  double get _minimumAccumulatedRadians {
+    return (DialConstants.minMinutes - _baseMinutes) /
+        DialConstants.minutesPerLap *
+        DialGeometry.twoPi;
+  }
+
+  double get _maximumAccumulatedRadians {
+    return (DialConstants.maxMinutes - _baseMinutes) /
+        DialConstants.minutesPerLap *
+        DialGeometry.twoPi;
   }
 }
