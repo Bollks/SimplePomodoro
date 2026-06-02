@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../feedback/feedback_service.dart';
+import 'dial_background.dart';
 import 'dial_drag_session.dart';
 import 'dial_geometry.dart';
 import 'dial_painter.dart';
@@ -23,9 +24,6 @@ class _DialTimerPageState extends State<DialTimerPage>
     with WidgetsBindingObserver {
   static const Color _idleBackgroundColor = Color(0xFFF5F1E8);
   static const Color _runningBackgroundColor = Colors.black;
-  static const Duration _backgroundTransitionDuration = Duration(
-    milliseconds: 200,
-  );
   static const String _dialFaceAsset = 'assets/dials/fritillaria.webp';
   static const String _dialCaseAsset = 'assets/cases/case_01.webp';
   static const String _minuteHandAsset =
@@ -154,18 +152,13 @@ class _DialTimerPageState extends State<DialTimerPage>
 
   @override
   Widget build(BuildContext context) {
-    final backgroundColor = _controller.isRunning
-        ? _runningBackgroundColor
-        : _idleBackgroundColor;
-
     return Scaffold(
-      backgroundColor: backgroundColor,
-      body: AnimatedContainer(
+      backgroundColor: _idleBackgroundColor,
+      body: DialBackground(
         key: const Key('dial-timer-background'),
-        duration: _backgroundTransitionDuration,
-        decoration: BoxDecoration(color: backgroundColor),
-        width: double.infinity,
-        height: double.infinity,
+        isRunning: _controller.isRunning,
+        idleColor: _idleBackgroundColor,
+        runningColor: _runningBackgroundColor,
         child: SafeArea(
           child: Center(
             child: LayoutBuilder(
