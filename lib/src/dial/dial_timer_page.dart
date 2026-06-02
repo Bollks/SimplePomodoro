@@ -24,6 +24,7 @@ class _DialTimerPageState extends State<DialTimerPage>
     with WidgetsBindingObserver {
   static const Color _idleBackgroundColor = Color(0xFFF5F1E8);
   static const Color _runningBackgroundColor = Colors.black;
+  static const Duration _stopLongPressDuration = Duration(milliseconds: 700);
   static const String _dialFaceAsset = 'assets/dials/fritillaria.webp';
   static const String _dialCaseAsset = 'assets/cases/case_01.webp';
   static const String _minuteHandAsset =
@@ -33,6 +34,7 @@ class _DialTimerPageState extends State<DialTimerPage>
   late final DialTimerController _controller;
 
   Timer? _ticker;
+  Timer? _stopLongPressTimer;
   DialDragSession? _dragSession;
   Size _dialSize = Size.zero;
 
@@ -48,6 +50,7 @@ class _DialTimerPageState extends State<DialTimerPage>
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _ticker?.cancel();
+    _stopLongPressTimer?.cancel();
     _controller.removeListener(_handleControllerChanged);
     _controller.dispose();
     super.dispose();
@@ -150,6 +153,44 @@ class _DialTimerPageState extends State<DialTimerPage>
     _dragSession = null;
   }
 
+  void _handlePointerDown(PointerDownEvent event) {
+    _stopLongPressTimer?.cancel();
+    if (!_controller.isRunning) {
+      return;
+    }
+
+    if (!_geometry.isOnMinuteHandStopTarget(
+      size: _dialSize,
+      position: event.localPosition,
+      minutes: _controller.visualMinutes,
+    )) {
+      return;
+    }
+
+    _stopLongPressTimer = Timer(_stopLongPressDuration, _stopRunningTimer);
+  }
+
+  void _handlePointerUp(PointerUpEvent event) {
+    _stopLongPressTimer?.cancel();
+    _stopLongPressTimer = null;
+  }
+
+  void _handlePointerCancel(PointerCancelEvent event) {
+    _stopLongPressTimer?.cancel();
+    _stopLongPressTimer = null;
+  }
+
+  void _stopRunningTimer() {
+    if (!mounted || !_controller.isRunning) {
+      return;
+    }
+
+    _stopLongPressTimer = null;
+    _dragSession = null;
+    _stopTicker();
+    _controller.stopAndReset();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -176,35 +217,40 @@ class _DialTimerPageState extends State<DialTimerPage>
                   onPanUpdate: _handlePanUpdate,
                   onPanEnd: _handlePanEnd,
                   onPanCancel: _handlePanCancel,
-                  child: SizedBox.square(
-                    dimension: dialSide,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        Image.asset(
-                          _dialFaceAsset,
-                          key: const Key('dial-face-artwork'),
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                        ),
-                        CustomPaint(
-                          painter: DialPainter(
-                            geometry: _geometry,
-                            drawShell: false,
+                  child: Listener(
+                    onPointerDown: _handlePointerDown,
+                    onPointerUp: _handlePointerUp,
+                    onPointerCancel: _handlePointerCancel,
+                    child: SizedBox.square(
+                      dimension: dialSide,
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.asset(
+                            _dialFaceAsset,
+                            key: const Key('dial-face-artwork'),
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.high,
                           ),
-                        ),
-                        MinuteHand(
-                          assetName: _minuteHandAsset,
-                          minutes: _controller.visualMinutes,
-                          geometry: _geometry,
-                        ),
-                        Image.asset(
-                          _dialCaseAsset,
-                          key: const Key('dial-case-artwork'),
-                          fit: BoxFit.contain,
-                          filterQuality: FilterQuality.high,
-                        ),
-                      ],
+                          CustomPaint(
+                            painter: DialPainter(
+                              geometry: _geometry,
+                              drawShell: false,
+                            ),
+                          ),
+                          MinuteHand(
+                            assetName: _minuteHandAsset,
+                            minutes: _controller.visualMinutes,
+                            geometry: _geometry,
+                          ),
+                          Image.asset(
+                            _dialCaseAsset,
+                            key: const Key('dial-case-artwork'),
+                            fit: BoxFit.contain,
+                            filterQuality: FilterQuality.high,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
