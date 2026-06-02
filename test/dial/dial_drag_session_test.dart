@@ -7,11 +7,11 @@ import 'package:simple_pomodoro/src/dial/dial_geometry.dart';
 void main() {
   const geometry = DialGeometry();
 
-  test('clockwise movement increases selected minutes', () {
+  test('clockwise movement increases selected minutes from zero', () {
     final session = DialDragSession(
       geometry: geometry,
-      initialMinutes: 5,
-      initialAngle: math.pi / 6,
+      initialMinutes: 0,
+      initialAngle: 0,
     );
 
     final updated = session.update(math.pi / 3);
@@ -19,7 +19,31 @@ void main() {
     expect(updated, 10);
   });
 
-  test('crossing 12 o clock clockwise can enter the second lap', () {
+  test('counterclockwise movement from zero stays at zero', () {
+    final session = DialDragSession(
+      geometry: geometry,
+      initialMinutes: 0,
+      initialAngle: 0,
+    );
+
+    final updated = session.update(math.pi * 2 - 0.1);
+
+    expect(updated, 0);
+  });
+
+  test('counterclockwise movement can reduce selected minutes', () {
+    final session = DialDragSession(
+      geometry: geometry,
+      initialMinutes: 30,
+      initialAngle: math.pi,
+    );
+
+    final updated = session.update(math.pi / 2);
+
+    expect(updated, 15);
+  });
+
+  test('crossing 12 o clock clockwise reaches sixty but not a second lap', () {
     final session = DialDragSession(
       geometry: geometry,
       initialMinutes: 59,
@@ -27,29 +51,27 @@ void main() {
     );
 
     expect(session.update(0.02), 60);
-    expect(session.update(0.12), 61);
+    expect(session.update(0.12), 60);
   });
 
-  test('dragging below minimum clamps to 5 minutes', () {
+  test('values above maximum clamp to 60 minutes', () {
     final session = DialDragSession(
       geometry: geometry,
-      initialMinutes: 5,
-      initialAngle: math.pi / 6,
+      initialMinutes: 60,
+      initialAngle: geometry.angleForMinutes(60),
     );
 
-    final updated = session.update(0.01);
-
-    expect(updated, 5);
+    expect(session.update(math.pi / 2), 60);
   });
 
-  test('dragging above maximum clamps to 120 minutes', () {
+  test('counterclockwise movement after max overshoot reduces immediately', () {
     final session = DialDragSession(
       geometry: geometry,
-      initialMinutes: 119,
-      initialAngle: geometry.angleForMinutes(119),
+      initialMinutes: 60,
+      initialAngle: geometry.angleForMinutes(60),
     );
 
-    expect(session.update(0.02), 120);
-    expect(session.update(0.20), 120);
+    expect(session.update(math.pi), 60);
+    expect(session.update(0.1), 31);
   });
 }

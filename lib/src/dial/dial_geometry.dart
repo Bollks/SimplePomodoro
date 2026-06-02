@@ -28,6 +28,12 @@ class DialGeometry {
         : minuteOnDial / DialConstants.minutesPerLap * twoPi;
   }
 
+  int minutesForAngle(double angle) {
+    final normalized = normalizeAngle(angle);
+    final rawMinutes = normalized / twoPi * DialConstants.minutesPerLap;
+    return clampMinutes(rawMinutes);
+  }
+
   double displaySweepForMinutes(num minutes) {
     final clamped = _clampVisualMinutes(minutes);
     final visibleMinutes = math.min(clamped, DialConstants.minutesPerLap);
@@ -37,7 +43,10 @@ class DialGeometry {
   double _clampVisualMinutes(num minutes) {
     return minutes
         .toDouble()
-        .clamp(0.0, DialConstants.maxMinutes.toDouble())
+        .clamp(
+          DialConstants.minMinutes.toDouble(),
+          DialConstants.maxMinutes.toDouble(),
+        )
         .toDouble();
   }
 
@@ -72,11 +81,13 @@ class DialGeometry {
   }
 
   double outerRadiusFor(Size size) {
-    return math.min(size.width, size.height) * DialConstants.dialOuterRadiusFactor;
+    return math.min(size.width, size.height) *
+        DialConstants.dialOuterRadiusFactor;
   }
 
   double innerRadiusFor(Size size) {
-    return math.min(size.width, size.height) * DialConstants.dialInnerRadiusFactor;
+    return math.min(size.width, size.height) *
+        DialConstants.dialInnerRadiusFactor;
   }
 
   Offset pointForMinutes(Size size, num minutes, {double radiusFactor = 0.42}) {
@@ -89,10 +100,7 @@ class DialGeometry {
     );
   }
 
-  bool isInsideCenterButton({
-    required Size size,
-    required Offset position,
-  }) {
+  bool isInsideCenterButton({required Size size, required Offset position}) {
     final center = centerOf(size);
     final radius = math.min(size.width, size.height) * 0.15;
     return (position - center).distance <= radius;
@@ -116,5 +124,45 @@ class DialGeometry {
     final edgeAngle = angleForMinutes(minutes);
     final delta = shortestClockwiseDelta(edgeAngle, angle).abs();
     return delta <= DialConstants.edgeTouchAngularTolerance;
+  }
+
+  bool isOnMinuteHand({
+    required Size size,
+    required Offset position,
+    required num minutes,
+  }) {
+    final shortestSide = math.min(size.width, size.height);
+    final center = centerOf(size);
+    final hubRadius = shortestSide * DialConstants.minuteHandHubRadiusFactor;
+    if ((position - center).distance <= hubRadius) {
+      return true;
+    }
+
+    final angle = angleForMinutes(minutes);
+    final direction = Offset(math.sin(angle), -math.cos(angle));
+    final start =
+        center -
+        direction * shortestSide * DialConstants.minuteHandTailRadiusFactor;
+    final end =
+        center +
+        direction * shortestSide * DialConstants.minuteHandTipRadiusFactor;
+    final touchWidth = shortestSide * DialConstants.minuteHandTouchWidthFactor;
+
+    return _distanceToSegment(position, start, end) <= touchWidth;
+  }
+
+  double _distanceToSegment(Offset point, Offset start, Offset end) {
+    final segment = end - start;
+    final lengthSquared = segment.dx * segment.dx + segment.dy * segment.dy;
+    if (lengthSquared == 0) {
+      return (point - start).distance;
+    }
+
+    final relative = point - start;
+    final projection =
+        (relative.dx * segment.dx + relative.dy * segment.dy) / lengthSquared;
+    final clampedProjection = projection.clamp(0.0, 1.0).toDouble();
+    final closest = start + segment * clampedProjection;
+    return (point - closest).distance;
   }
 }

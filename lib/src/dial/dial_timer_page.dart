@@ -8,6 +8,7 @@ import 'dial_drag_session.dart';
 import 'dial_geometry.dart';
 import 'dial_painter.dart';
 import 'dial_timer_controller.dart';
+import 'minute_hand.dart';
 
 class DialTimerPage extends StatefulWidget {
   const DialTimerPage({required this.feedbackService, super.key});
@@ -27,6 +28,8 @@ class _DialTimerPageState extends State<DialTimerPage>
   );
   static const String _dialFaceAsset = 'assets/dials/fritillaria.webp';
   static const String _dialCaseAsset = 'assets/cases/case_01.webp';
+  static const String _minuteHandAsset =
+      'assets/hands/minute_hand_placeholder.svg';
 
   final DialGeometry _geometry = const DialGeometry();
   late final DialTimerController _controller;
@@ -85,29 +88,13 @@ class _DialTimerPageState extends State<DialTimerPage>
     }
   }
 
-  void _handleTapUp(TapUpDetails details) {
-    final position = details.localPosition;
-    if (!_geometry.isInsideCenterButton(size: _dialSize, position: position)) {
-      return;
-    }
-
-    if (_controller.isRunning) {
-      _controller.stopAndReset();
-      _stopTicker();
-      return;
-    }
-
-    _controller.start(DateTime.now());
-    _startTicker();
-  }
-
   void _handlePanStart(DragStartDetails details) {
     if (_controller.isRunning) {
       return;
     }
 
     final position = details.localPosition;
-    if (!_geometry.isOnEdge(
+    if (!_geometry.isOnMinuteHand(
       size: _dialSize,
       position: position,
       minutes: _controller.selectedMinutes,
@@ -139,7 +126,18 @@ class _DialTimerPageState extends State<DialTimerPage>
   }
 
   void _handlePanEnd(DragEndDetails details) {
+    final shouldStart =
+        _dragSession != null &&
+        !_controller.isRunning &&
+        _controller.selectedMinutes > 0;
     _dragSession = null;
+
+    if (!shouldStart) {
+      return;
+    }
+
+    _controller.start(DateTime.now());
+    _startTicker();
   }
 
   void _handlePanCancel() {
@@ -173,7 +171,6 @@ class _DialTimerPageState extends State<DialTimerPage>
 
                 return GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTapUp: _handleTapUp,
                   onPanStart: _handlePanStart,
                   onPanUpdate: _handlePanUpdate,
                   onPanEnd: _handlePanEnd,
@@ -191,11 +188,14 @@ class _DialTimerPageState extends State<DialTimerPage>
                         ),
                         CustomPaint(
                           painter: DialPainter(
-                            visualMinutes: _controller.visualMinutes,
-                            isRunning: _controller.isRunning,
                             geometry: _geometry,
                             drawShell: false,
                           ),
+                        ),
+                        MinuteHand(
+                          assetName: _minuteHandAsset,
+                          minutes: _controller.visualMinutes,
+                          geometry: _geometry,
                         ),
                         Image.asset(
                           _dialCaseAsset,
