@@ -25,6 +25,8 @@ class _DialTimerPageState extends State<DialTimerPage>
   static const Duration _backgroundTransitionDuration = Duration(
     milliseconds: 200,
   );
+  static const String _dialFaceAsset = 'assets/dials/fritillaria.webp';
+  static const String _dialCaseAsset = 'assets/cases/case_01.webp';
 
   final DialGeometry _geometry = const DialGeometry();
   late final DialTimerController _controller;
@@ -178,12 +180,30 @@ class _DialTimerPageState extends State<DialTimerPage>
                   onPanCancel: _handlePanCancel,
                   child: SizedBox.square(
                     dimension: dialSide,
-                    child: CustomPaint(
-                      painter: DialPainter(
-                        visualMinutes: _controller.visualMinutes,
-                        isRunning: _controller.isRunning,
-                        geometry: _geometry,
-                      ),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Image.asset(
+                          _dialFaceAsset,
+                          key: const Key('dial-face-artwork'),
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        ),
+                        CustomPaint(
+                          painter: DialPainter(
+                            visualMinutes: _controller.visualMinutes,
+                            isRunning: _controller.isRunning,
+                            geometry: _geometry,
+                            drawShell: false,
+                          ),
+                        ),
+                        Image.asset(
+                          _dialCaseAsset,
+                          key: const Key('dial-case-artwork'),
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ],
                     ),
                   ),
                 );

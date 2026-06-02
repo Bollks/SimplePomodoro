@@ -9,11 +9,13 @@ class DialPainter extends CustomPainter {
     required this.visualMinutes,
     required this.isRunning,
     this.geometry = const DialGeometry(),
+    this.drawShell = true,
   });
 
   final double visualMinutes;
   final bool isRunning;
   final DialGeometry geometry;
+  final bool drawShell;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -21,7 +23,9 @@ class DialPainter extends CustomPainter {
     final radius = geometry.outerRadiusFor(size);
     final dialRect = Rect.fromCircle(center: center, radius: radius);
 
-    _drawShell(canvas, center, radius);
+    if (drawShell) {
+      _drawShell(canvas, center, radius);
+    }
     _drawSector(canvas, dialRect);
     _drawEdgeShadow(canvas, center, radius);
     _drawMarkers(canvas, center, radius);
@@ -31,11 +35,7 @@ class DialPainter extends CustomPainter {
   void _drawShell(Canvas canvas, Offset center, double radius) {
     final shellPaint = Paint()
       ..shader = RadialGradient(
-        colors: const [
-          Color(0xFFF8F6EF),
-          Color(0xFFD9DAD6),
-          Color(0xFFB9BDB8),
-        ],
+        colors: const [Color(0xFFF8F6EF), Color(0xFFD9DAD6), Color(0xFFB9BDB8)],
         stops: const [0.72, 0.88, 1],
       ).createShader(Rect.fromCircle(center: center, radius: radius));
 
@@ -82,11 +82,7 @@ class DialPainter extends CustomPainter {
     final rect = Rect.fromLTWH(0, -shadowWidth / 2, shadowLength, shadowWidth);
     final paint = Paint()
       ..shader = const LinearGradient(
-        colors: [
-          Color(0x5520332A),
-          Color(0x1120332A),
-          Color(0x0020332A),
-        ],
+        colors: [Color(0x5520332A), Color(0x1120332A), Color(0x0020332A)],
       ).createShader(rect)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
 
@@ -119,11 +115,7 @@ class DialPainter extends CustomPainter {
     final buttonRect = Rect.fromCircle(center: center, radius: buttonRadius);
     final buttonPaint = Paint()
       ..shader = const RadialGradient(
-        colors: [
-          Color(0xFFE0E2DD),
-          Color(0xFFC3C8C1),
-          Color(0xFF9BA39B),
-        ],
+        colors: [Color(0xFFE0E2DD), Color(0xFFC3C8C1), Color(0xFF9BA39B)],
       ).createShader(buttonRect);
 
     canvas.drawCircle(center, buttonRadius, buttonPaint);
@@ -138,6 +130,7 @@ class DialPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant DialPainter oldDelegate) {
     return oldDelegate.visualMinutes != visualMinutes ||
-        oldDelegate.isRunning != isRunning;
+        oldDelegate.isRunning != isRunning ||
+        oldDelegate.drawShell != drawShell;
   }
 }

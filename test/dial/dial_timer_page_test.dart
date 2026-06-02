@@ -38,6 +38,28 @@ void main() {
     return decoration is BoxDecoration ? decoration.color : null;
   }
 
+  testWidgets('uses Calatrava dial face and case artwork', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
+    );
+
+    expect(find.byKey(const Key('dial-face-artwork')), findsOneWidget);
+    expect(find.byKey(const Key('dial-case-artwork')), findsOneWidget);
+
+    final face = tester.widget<Image>(
+      find.byKey(const Key('dial-face-artwork')),
+    );
+    final shell = tester.widget<Image>(
+      find.byKey(const Key('dial-case-artwork')),
+    );
+
+    expect(
+      (face.image as AssetImage).assetName,
+      'assets/dials/fritillaria.webp',
+    );
+    expect((shell.image as AssetImage).assetName, 'assets/cases/case_01.webp');
+  });
+
   testWidgets('renders without visible text controls', (tester) async {
     await tester.pumpWidget(
       MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
