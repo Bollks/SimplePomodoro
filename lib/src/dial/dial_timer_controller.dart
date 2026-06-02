@@ -11,7 +11,7 @@ class DialTimerController extends ChangeNotifier {
 
   DialTimerPhase _phase = DialTimerPhase.idle;
   int _selectedMinutes = DialConstants.defaultMinutes;
-  Duration _remaining = const Duration(minutes: DialConstants.defaultMinutes);
+  Duration _remaining = Duration.zero;
   DateTime? _endsAt;
 
   DialTimerPhase get phase => _phase;
@@ -32,17 +32,18 @@ class DialTimerController extends ChangeNotifier {
     }
 
     final next = _geometry.clampMinutes(minutes);
-    if (next == _selectedMinutes && _remaining == Duration(minutes: next)) {
+    final nextRemaining = Duration(minutes: next);
+    if (next == _selectedMinutes && _remaining == nextRemaining) {
       return;
     }
 
     _selectedMinutes = next;
-    _remaining = Duration(minutes: next);
+    _remaining = nextRemaining;
     notifyListeners();
   }
 
   void start(DateTime now) {
-    if (_phase == DialTimerPhase.running) {
+    if (_phase == DialTimerPhase.running || _selectedMinutes <= 0) {
       return;
     }
 
@@ -72,7 +73,7 @@ class DialTimerController extends ChangeNotifier {
   void stopAndReset() {
     if (_phase == DialTimerPhase.idle &&
         _selectedMinutes == DialConstants.defaultMinutes &&
-        _remaining == const Duration(minutes: DialConstants.defaultMinutes)) {
+        _remaining == Duration.zero) {
       return;
     }
 
@@ -83,7 +84,7 @@ class DialTimerController extends ChangeNotifier {
   void _resetToDefault() {
     _phase = DialTimerPhase.idle;
     _selectedMinutes = DialConstants.defaultMinutes;
-    _remaining = const Duration(minutes: DialConstants.defaultMinutes);
+    _remaining = Duration.zero;
     _endsAt = null;
   }
 }
