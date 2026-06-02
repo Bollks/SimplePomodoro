@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:simple_pomodoro/src/dial/dial_background.dart';
 import 'package:simple_pomodoro/src/dial/dial_geometry.dart';
 import 'package:simple_pomodoro/src/dial/dial_painter.dart';
 import 'package:simple_pomodoro/src/dial/dial_timer_page.dart';
@@ -28,15 +29,12 @@ void main() {
     );
   }
 
-  AnimatedContainer backgroundContainer(WidgetTester tester) {
-    return tester.widget<AnimatedContainer>(
-      find.byKey(const Key('dial-timer-background')),
-    );
+  DialBackground pageBackground(WidgetTester tester) {
+    return tester.widget<DialBackground>(find.byType(DialBackground));
   }
 
-  Color? backgroundColorOf(AnimatedContainer container) {
-    final decoration = container.decoration;
-    return decoration is BoxDecoration ? decoration.color : null;
+  Scaffold pageScaffold(WidgetTester tester) {
+    return tester.widget<Scaffold>(find.byType(Scaffold));
   }
 
   testWidgets('uses dial face, minute hand, and case artwork', (tester) async {
@@ -80,18 +78,12 @@ void main() {
       MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
     );
 
-    expect(
-      backgroundColorOf(backgroundContainer(tester)),
-      const Color(0xFFF5F1E8),
-    );
+    expect(pageBackground(tester).isRunning, isFalse);
 
     await tester.tapAt(tester.getCenter(findDialPaint()));
     await tester.pump();
 
-    expect(
-      backgroundColorOf(backgroundContainer(tester)),
-      const Color(0xFFF5F1E8),
-    );
+    expect(pageBackground(tester).isRunning, isFalse);
   });
 
   testWidgets('dragging the minute hand starts on release', (tester) async {
@@ -113,11 +105,16 @@ void main() {
     await tester.dragFrom(start, end - start);
     await tester.pump();
 
+    expect(pageBackground(tester).isRunning, isTrue);
     expect(
-      backgroundContainer(tester).duration,
-      const Duration(milliseconds: 200),
+      pageBackground(tester).startDuration,
+      const Duration(milliseconds: 900),
     );
-    expect(backgroundColorOf(backgroundContainer(tester)), Colors.black);
+    expect(
+      pageBackground(tester).completionDuration,
+      const Duration(milliseconds: 1100),
+    );
+    expect(pageScaffold(tester).backgroundColor, const Color(0xFFF5F1E8));
     expect(feedbackService.selections, greaterThan(0));
   });
 
@@ -142,16 +139,13 @@ void main() {
     await gesture.moveTo(end);
     await tester.pump();
 
-    expect(
-      backgroundColorOf(backgroundContainer(tester)),
-      const Color(0xFFF5F1E8),
-    );
+    expect(pageBackground(tester).isRunning, isFalse);
     expect(feedbackService.selections, greaterThan(0));
 
     await gesture.up();
     await tester.pump();
 
-    expect(backgroundColorOf(backgroundContainer(tester)), Colors.black);
+    expect(pageBackground(tester).isRunning, isTrue);
   });
 
   testWidgets('dragging away from the minute hand does not start', (
@@ -175,9 +169,6 @@ void main() {
     await tester.dragFrom(start, end - start);
     await tester.pump();
 
-    expect(
-      backgroundColorOf(backgroundContainer(tester)),
-      const Color(0xFFF5F1E8),
-    );
+    expect(pageBackground(tester).isRunning, isFalse);
   });
 }
