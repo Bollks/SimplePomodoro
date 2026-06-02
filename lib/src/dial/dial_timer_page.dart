@@ -105,8 +105,16 @@ class _DialTimerPageState extends State<DialTimerPage>
     _dragSession = DialDragSession(
       geometry: _geometry,
       initialMinutes: _controller.selectedMinutes,
-      initialAngle: _geometry.angleFromCenter(_dialSize, position),
+      initialAngle: _initialDragAngleFor(position),
     );
+  }
+
+  double _initialDragAngleFor(Offset position) {
+    if (_geometry.isInsideMinuteHandHub(size: _dialSize, position: position)) {
+      return _geometry.angleForMinutes(_controller.selectedMinutes);
+    }
+
+    return _geometry.angleFromCenter(_dialSize, position);
   }
 
   Future<void> _handlePanUpdate(DragUpdateDetails details) async {

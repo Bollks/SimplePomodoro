@@ -81,4 +81,21 @@ void main() {
       isTrue,
     );
   });
+
+  test('isInsideMinuteHandHub accepts center points only within the hub', () {
+    const size = Size(300, 300);
+    final center = geometry.centerOf(size);
+
+    expect(
+      geometry.isInsideMinuteHandHub(size: size, position: center),
+      isTrue,
+    );
+    expect(
+      geometry.isInsideMinuteHandHub(
+        size: size,
+        position: center + const Offset(40, 0),
+      ),
+      isFalse,
+    );
+  });
 }

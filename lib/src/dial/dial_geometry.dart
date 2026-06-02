@@ -133,8 +133,7 @@ class DialGeometry {
   }) {
     final shortestSide = math.min(size.width, size.height);
     final center = centerOf(size);
-    final hubRadius = shortestSide * DialConstants.minuteHandHubRadiusFactor;
-    if ((position - center).distance <= hubRadius) {
+    if (isInsideMinuteHandHub(size: size, position: position)) {
       return true;
     }
 
@@ -149,6 +148,14 @@ class DialGeometry {
     final touchWidth = shortestSide * DialConstants.minuteHandTouchWidthFactor;
 
     return _distanceToSegment(position, start, end) <= touchWidth;
+  }
+
+  bool isInsideMinuteHandHub({required Size size, required Offset position}) {
+    final center = centerOf(size);
+    final hubRadius =
+        math.min(size.width, size.height) *
+        DialConstants.minuteHandHubRadiusFactor;
+    return (position - center).distance <= hubRadius;
   }
 
   double _distanceToSegment(Offset point, Offset start, Offset end) {

@@ -121,6 +121,39 @@ void main() {
     expect(feedbackService.selections, greaterThan(0));
   });
 
+  testWidgets('dragging from the hub uses the current hand angle', (
+    tester,
+  ) async {
+    final feedbackService = FakeFeedbackService();
+    await tester.pumpWidget(
+      MaterialApp(home: DialTimerPage(feedbackService: feedbackService)),
+    );
+
+    const geometry = DialGeometry();
+    final dialFinder = findDialPaint();
+    final dialTopLeft = tester.getTopLeft(dialFinder);
+    final dialSize = tester.getSize(dialFinder);
+    final start = dialTopLeft + geometry.centerOf(dialSize);
+    final end =
+        dialTopLeft +
+        geometry.pointForMinutes(dialSize, 15, radiusFactor: 0.30);
+
+    final gesture = await tester.startGesture(start);
+    await gesture.moveTo(end);
+    await tester.pump();
+
+    expect(
+      backgroundColorOf(backgroundContainer(tester)),
+      const Color(0xFFF5F1E8),
+    );
+    expect(feedbackService.selections, greaterThan(0));
+
+    await gesture.up();
+    await tester.pump();
+
+    expect(backgroundColorOf(backgroundContainer(tester)), Colors.black);
+  });
+
   testWidgets('dragging away from the minute hand does not start', (
     tester,
   ) async {
