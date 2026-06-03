@@ -22,54 +22,110 @@ void main() {
     );
   }
 
-  Color backgroundColor(WidgetTester tester) {
+  Color idleLayerColor(WidgetTester tester) {
     final box = tester.widget<DecoratedBox>(
-      find.byKey(const Key('dial-background-color-layer')),
+      find.byKey(const Key('dial-background-idle-layer')),
     );
     final decoration = box.decoration as BoxDecoration;
     return decoration.color!;
   }
 
-  testWidgets('start transition uses an intermediate color before black', (
+  double runningLayerOpacity(WidgetTester tester) {
+    final opacity = tester.widget<Opacity>(
+      find.byKey(const Key('dial-background-running-layer')),
+    );
+    return opacity.opacity;
+  }
+
+  testWidgets('start transition fades running overlay through visible states', (
     tester,
   ) async {
     await pumpBackground(tester, isRunning: false);
-    expect(backgroundColor(tester), idleColor);
+    expect(idleLayerColor(tester), idleColor);
+    expect(runningLayerOpacity(tester), 0);
 
     await pumpBackground(tester, isRunning: true);
-    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pump(const Duration(milliseconds: 325));
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
 
-    final midway = backgroundColor(tester);
-    expect(midway, isNot(idleColor));
-    expect(midway, isNot(runningColor));
+    await tester.pump(const Duration(milliseconds: 325));
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
 
-    await tester.pump(const Duration(milliseconds: 450));
-    expect(backgroundColor(tester), runningColor);
+    await tester.pump(const Duration(milliseconds: 325));
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
+
+    await tester.pumpAndSettle();
+    expect(runningLayerOpacity(tester), 1);
   });
 
-  testWidgets('completion transition uses an intermediate color before idle', (
+  testWidgets('stop transition fades running overlay out through visible states', (
     tester,
   ) async {
     await pumpBackground(tester, isRunning: true);
-    await tester.pump(const Duration(milliseconds: 900));
-    expect(backgroundColor(tester), runningColor);
+    expect(runningLayerOpacity(tester), 1);
 
     await pumpBackground(tester, isRunning: false);
-    await tester.pump(const Duration(milliseconds: 550));
+    await tester.pump(const Duration(milliseconds: 375));
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
 
-    final midway = backgroundColor(tester);
-    expect(midway, isNot(runningColor));
-    expect(midway, isNot(idleColor));
+    await tester.pump(const Duration(milliseconds: 375));
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
 
-    await tester.pump(const Duration(milliseconds: 550));
-    expect(backgroundColor(tester), idleColor);
+    await tester.pump(const Duration(milliseconds: 375));
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
+
+    await tester.pumpAndSettle();
+    expect(runningLayerOpacity(tester), 0);
+  });
+
+  testWidgets('state reversal continues from the current overlay opacity', (
+    tester,
+  ) async {
+    await pumpBackground(tester, isRunning: false);
+
+    await pumpBackground(tester, isRunning: true);
+    await tester.pump(const Duration(milliseconds: 650));
+    final beforeReverse = runningLayerOpacity(tester);
+    expect(beforeReverse, greaterThan(0));
+    expect(beforeReverse, lessThan(1));
+
+    await pumpBackground(tester, isRunning: false);
+    await tester.pump();
+    final afterReverse = runningLayerOpacity(tester);
+    expect(afterReverse, closeTo(beforeReverse, 0.08));
+
+    await tester.pumpAndSettle();
+    expect(runningLayerOpacity(tester), 0);
+  });
+
+  testWidgets('preserves transition when platform disables animations', (
+    tester,
+  ) async {
+    tester.platformDispatcher.accessibilityFeaturesTestValue =
+        const FakeAccessibilityFeatures(disableAnimations: true);
+    addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+
+    await pumpBackground(tester, isRunning: false);
+    expect(runningLayerOpacity(tester), 0);
+
+    await pumpBackground(tester, isRunning: true);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(runningLayerOpacity(tester), greaterThan(0));
+    expect(runningLayerOpacity(tester), lessThan(1));
   });
 
   testWidgets('uses distinct start and completion durations', (tester) async {
     await pumpBackground(tester, isRunning: false);
     final widget = tester.widget<DialBackground>(find.byType(DialBackground));
 
-    expect(widget.startDuration, const Duration(milliseconds: 900));
-    expect(widget.completionDuration, const Duration(milliseconds: 1100));
+    expect(widget.startDuration, const Duration(milliseconds: 1300));
+    expect(widget.completionDuration, const Duration(milliseconds: 1500));
   });
 }

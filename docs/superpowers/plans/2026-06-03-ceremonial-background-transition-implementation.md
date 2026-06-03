@@ -121,7 +121,30 @@ testWidgets('state reversal continues from the current overlay opacity', (
 });
 ```
 
-- [ ] **Step 5: Update expected default durations**
+- [ ] **Step 5: Add a reduced-animation regression test**
+
+Add this test before the duration test:
+
+```dart
+testWidgets('preserves transition when platform disables animations', (
+  tester,
+) async {
+  tester.platformDispatcher.accessibilityFeaturesTestValue =
+      const FakeAccessibilityFeatures(disableAnimations: true);
+  addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+
+  await pumpBackground(tester, isRunning: false);
+  expect(runningLayerOpacity(tester), 0);
+
+  await pumpBackground(tester, isRunning: true);
+  await tester.pump(const Duration(milliseconds: 100));
+
+  expect(runningLayerOpacity(tester), greaterThan(0));
+  expect(runningLayerOpacity(tester), lessThan(1));
+});
+```
+
+- [ ] **Step 6: Update expected default durations**
 
 In the duration test, update expected values:
 
@@ -130,7 +153,7 @@ expect(widget.startDuration, const Duration(milliseconds: 1300));
 expect(widget.completionDuration, const Duration(milliseconds: 1500));
 ```
 
-- [ ] **Step 6: Run the focused test and verify it fails**
+- [ ] **Step 7: Run the focused test and verify it fails**
 
 Run:
 
@@ -154,27 +177,30 @@ this.startDuration = const Duration(milliseconds: 1300),
 this.completionDuration = const Duration(milliseconds: 1500),
 ```
 
-- [ ] **Step 2: Replace color animation with curved opacity animations**
+- [ ] **Step 2: Replace color animation with one curved opacity animation**
 
 Replace the `_color` field with:
 
 ```dart
-late Animation<double> _startOpacity;
-late Animation<double> _completionOpacity;
+late Animation<double> _runningOpacity;
 ```
 
-Initialize both animations in `initState`:
+Initialize the animation in `initState`:
 
 ```dart
-_startOpacity = CurvedAnimation(
+_controller = AnimationController(
+  vsync: this,
+  animationBehavior: AnimationBehavior.preserve,
+)
+  ..value = widget.isRunning ? 1 : 0;
+
+_runningOpacity = CurvedAnimation(
   parent: _controller,
   curve: Curves.easeInOutCubic,
 );
-_completionOpacity = CurvedAnimation(
-  parent: _controller,
-  curve: Curves.easeOutCubic,
-);
 ```
+
+`AnimationBehavior.preserve` keeps this timer-mode transition visible on devices that request disabled or reduced system animations.
 
 - [ ] **Step 3: Remove color tween rebuild logic**
 
@@ -211,11 +237,9 @@ Widget build(BuildContext context) {
       AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {
-          final opacity =
-              widget.isRunning ? _startOpacity.value : _completionOpacity.value;
           return Opacity(
             key: const Key('dial-background-running-layer'),
-            opacity: opacity,
+            opacity: _runningOpacity.value,
             child: child,
           );
         },

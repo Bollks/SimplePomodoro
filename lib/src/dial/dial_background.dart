@@ -6,8 +6,8 @@ class DialBackground extends StatefulWidget {
     required this.idleColor,
     required this.runningColor,
     required this.child,
-    this.startDuration = const Duration(milliseconds: 900),
-    this.completionDuration = const Duration(milliseconds: 1100),
+    this.startDuration = const Duration(milliseconds: 1300),
+    this.completionDuration = const Duration(milliseconds: 1500),
     super.key,
   });
 
@@ -25,24 +25,25 @@ class DialBackground extends StatefulWidget {
 class _DialBackgroundState extends State<DialBackground>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late Animation<Color?> _color;
+  late Animation<double> _runningOpacity;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this)
+    _controller = AnimationController(
+      vsync: this,
+      animationBehavior: AnimationBehavior.preserve,
+    )
       ..value = widget.isRunning ? 1 : 0;
-    _color = _buildColorAnimation();
+    _runningOpacity = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   @override
   void didUpdateWidget(covariant DialBackground oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.idleColor != widget.idleColor ||
-        oldWidget.runningColor != widget.runningColor) {
-      _color = _buildColorAnimation();
-    }
-
     if (oldWidget.isRunning == widget.isRunning) {
       return;
     }
@@ -60,25 +61,30 @@ class _DialBackgroundState extends State<DialBackground>
     super.dispose();
   }
 
-  Animation<Color?> _buildColorAnimation() {
-    return ColorTween(
-      begin: widget.idleColor,
-      end: widget.runningColor,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-  }
-
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _color,
-      builder: (context, child) {
-        return DecoratedBox(
-          key: const Key('dial-background-color-layer'),
-          decoration: BoxDecoration(color: _color.value),
-          child: child,
-        );
-      },
-      child: widget.child,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DecoratedBox(
+          key: const Key('dial-background-idle-layer'),
+          decoration: BoxDecoration(color: widget.idleColor),
+        ),
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return Opacity(
+              key: const Key('dial-background-running-layer'),
+              opacity: _runningOpacity.value,
+              child: child,
+            );
+          },
+          child: DecoratedBox(
+            decoration: BoxDecoration(color: widget.runningColor),
+          ),
+        ),
+        widget.child,
+      ],
     );
   }
 }

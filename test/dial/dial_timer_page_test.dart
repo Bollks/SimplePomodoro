@@ -133,11 +133,11 @@ void main() {
     expect(pageBackground(tester).isRunning, isTrue);
     expect(
       pageBackground(tester).startDuration,
-      const Duration(milliseconds: 900),
+      const Duration(milliseconds: 1300),
     );
     expect(
       pageBackground(tester).completionDuration,
-      const Duration(milliseconds: 1100),
+      const Duration(milliseconds: 1500),
     );
     expect(pageScaffold(tester).backgroundColor, const Color(0xFFF5F1E8));
     expect(feedbackService.selections, greaterThan(0));
