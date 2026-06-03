@@ -69,12 +69,16 @@ void main() {
 
     expect(find.byKey(const Key('dial-face-artwork')), findsOneWidget);
     expect(find.byType(MinuteHand), findsOneWidget);
+    expect(find.byKey(const Key('dial-center-cap-artwork')), findsOneWidget);
     expect(find.byKey(const Key('dial-case-artwork')), findsOneWidget);
 
     final face = tester.widget<Image>(
       find.byKey(const Key('dial-face-artwork')),
     );
     final hand = tester.widget<MinuteHand>(find.byType(MinuteHand));
+    final centerCap = tester.widget<Image>(
+      find.byKey(const Key('dial-center-cap-artwork')),
+    );
     final shell = tester.widget<Image>(
       find.byKey(const Key('dial-case-artwork')),
     );
@@ -83,7 +87,8 @@ void main() {
       (face.image as AssetImage).assetName,
       'assets/dials/fritillaria.webp',
     );
-    expect(hand.assetName, 'assets/hands/minute_hand_placeholder.svg');
+    expect(hand.assetName, 'assets/pointer.webp');
+    expect((centerCap.image as AssetImage).assetName, 'assets/hat.webp');
     expect((shell.image as AssetImage).assetName, 'assets/cases/case_01.webp');
   });
 

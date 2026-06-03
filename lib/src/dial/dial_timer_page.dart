@@ -27,8 +27,9 @@ class _DialTimerPageState extends State<DialTimerPage>
   static const Duration _stopLongPressDuration = Duration(milliseconds: 700);
   static const String _dialFaceAsset = 'assets/dials/fritillaria.webp';
   static const String _dialCaseAsset = 'assets/cases/case_01.webp';
-  static const String _minuteHandAsset =
-      'assets/hands/minute_hand_placeholder.svg';
+  static const String _minuteHandAsset = 'assets/pointer.webp';
+  static const String _centerCapAsset = 'assets/hat.webp';
+  static const double _centerCapDiameterFactor = 0.1785;
 
   final DialGeometry _geometry = const DialGeometry();
   late final DialTimerController _controller;
@@ -242,6 +243,17 @@ class _DialTimerPageState extends State<DialTimerPage>
                             assetName: _minuteHandAsset,
                             minutes: _controller.visualMinutes,
                             geometry: _geometry,
+                          ),
+                          Center(
+                            child: SizedBox.square(
+                              dimension: dialSide * _centerCapDiameterFactor,
+                              child: Image.asset(
+                                _centerCapAsset,
+                                key: const Key('dial-center-cap-artwork'),
+                                fit: BoxFit.contain,
+                                filterQuality: FilterQuality.high,
+                              ),
+                            ),
                           ),
                           Image.asset(
                             _dialCaseAsset,

@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:simple_pomodoro/src/dial/dial_geometry.dart';
 import 'package:simple_pomodoro/src/dial/minute_hand.dart';
 
@@ -18,7 +17,7 @@ void main() {
         child: SizedBox.square(
           dimension: 240,
           child: MinuteHand(
-            assetName: 'assets/hands/minute_hand_placeholder.svg',
+            assetName: 'assets/pointer.webp',
             minutes: 15,
             geometry: geometry,
           ),
@@ -29,12 +28,17 @@ void main() {
     expect(find.byType(MinuteHand), findsOneWidget);
     expect(find.byKey(const Key('minute-hand-rotation')), findsOneWidget);
     expect(find.byKey(const Key('minute-hand-artwork')), findsOneWidget);
-    expect(find.byType(SvgPicture), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
 
     final hand = tester.widget<MinuteHand>(find.byType(MinuteHand));
-    expect(hand.assetName, 'assets/hands/minute_hand_placeholder.svg');
+    expect(hand.assetName, 'assets/pointer.webp');
     expect(hand.minutes, 15);
     expect(hand.geometry, geometry);
+
+    final artwork = tester.widget<Image>(
+      find.byKey(const Key('minute-hand-artwork')),
+    );
+    expect((artwork.image as AssetImage).assetName, 'assets/pointer.webp');
 
     final rotation = tester.widget<Transform>(
       find.byKey(const Key('minute-hand-rotation')),
