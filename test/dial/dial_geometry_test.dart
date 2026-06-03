@@ -98,4 +98,53 @@ void main() {
       isFalse,
     );
   });
+
+  test('isOnMinuteHandStopTarget accepts shaft and tip points only', () {
+    const size = Size(300, 300);
+    final shaft = geometry.pointForMinutes(size, 15, radiusFactor: 0.30);
+    final tip = geometry.pointForMinutes(size, 15, radiusFactor: 0.38);
+    final awayFromHand = geometry.pointForMinutes(
+      size,
+      45,
+      radiusFactor: 0.30,
+    );
+
+    expect(
+      geometry.isOnMinuteHandStopTarget(
+        size: size,
+        position: shaft,
+        minutes: 15,
+      ),
+      isTrue,
+    );
+    expect(
+      geometry.isOnMinuteHandStopTarget(
+        size: size,
+        position: tip,
+        minutes: 15,
+      ),
+      isTrue,
+    );
+    expect(
+      geometry.isOnMinuteHandStopTarget(
+        size: size,
+        position: awayFromHand,
+        minutes: 15,
+      ),
+      isFalse,
+    );
+  });
+
+  test('isOnMinuteHandStopTarget rejects the center hub', () {
+    const size = Size(300, 300);
+
+    expect(
+      geometry.isOnMinuteHandStopTarget(
+        size: size,
+        position: geometry.centerOf(size),
+        minutes: 15,
+      ),
+      isFalse,
+    );
+  });
 }

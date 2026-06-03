@@ -37,6 +37,31 @@ void main() {
     return tester.widget<Scaffold>(find.byType(Scaffold));
   }
 
+  Future<void> startTimerByDraggingHand(WidgetTester tester) async {
+    const geometry = DialGeometry();
+    final dialFinder = findDialPaint();
+    final dialTopLeft = tester.getTopLeft(dialFinder);
+    final dialSize = tester.getSize(dialFinder);
+    final start =
+        dialTopLeft + geometry.pointForMinutes(dialSize, 0, radiusFactor: 0.30);
+    final end =
+        dialTopLeft +
+        geometry.pointForMinutes(dialSize, 15, radiusFactor: 0.30);
+
+    await tester.dragFrom(start, end - start);
+    await tester.pump();
+  }
+
+  Future<void> longPressStopTarget(
+    WidgetTester tester,
+    Offset position,
+  ) async {
+    final gesture = await tester.startGesture(position);
+    await tester.pump(const Duration(milliseconds: 700));
+    await gesture.up();
+    await tester.pump();
+  }
+
   testWidgets('uses dial face, minute hand, and case artwork', (tester) async {
     await tester.pumpWidget(
       MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
@@ -170,5 +195,75 @@ void main() {
     await tester.pump();
 
     expect(pageBackground(tester).isRunning, isFalse);
+  });
+
+  testWidgets('long pressing the running minute hand stops and resets', (
+    tester,
+  ) async {
+    final feedbackService = FakeFeedbackService();
+    await tester.pumpWidget(
+      MaterialApp(home: DialTimerPage(feedbackService: feedbackService)),
+    );
+
+    await startTimerByDraggingHand(tester);
+    expect(pageBackground(tester).isRunning, isTrue);
+
+    const geometry = DialGeometry();
+    final dialFinder = findDialPaint();
+    final dialTopLeft = tester.getTopLeft(dialFinder);
+    final dialSize = tester.getSize(dialFinder);
+    final handPoint =
+        dialTopLeft +
+        geometry.pointForMinutes(dialSize, 15, radiusFactor: 0.30);
+
+    await longPressStopTarget(tester, handPoint);
+
+    expect(pageBackground(tester).isRunning, isFalse);
+    final hand = tester.widget<MinuteHand>(find.byType(MinuteHand));
+    expect(hand.minutes, 0);
+    expect(feedbackService.completions, 0);
+  });
+
+  testWidgets('long pressing away from the running minute hand does not stop', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
+    );
+
+    await startTimerByDraggingHand(tester);
+
+    const geometry = DialGeometry();
+    final dialFinder = findDialPaint();
+    final dialTopLeft = tester.getTopLeft(dialFinder);
+    final dialSize = tester.getSize(dialFinder);
+    final awayPoint =
+        dialTopLeft +
+        geometry.pointForMinutes(dialSize, 45, radiusFactor: 0.30);
+
+    await longPressStopTarget(tester, awayPoint);
+
+    expect(pageBackground(tester).isRunning, isTrue);
+  });
+
+  testWidgets('long pressing the idle minute hand does not start or reset', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
+    );
+
+    const geometry = DialGeometry();
+    final dialFinder = findDialPaint();
+    final dialTopLeft = tester.getTopLeft(dialFinder);
+    final dialSize = tester.getSize(dialFinder);
+    final handPoint =
+        dialTopLeft + geometry.pointForMinutes(dialSize, 0, radiusFactor: 0.30);
+
+    await longPressStopTarget(tester, handPoint);
+
+    expect(pageBackground(tester).isRunning, isFalse);
+    final hand = tester.widget<MinuteHand>(find.byType(MinuteHand));
+    expect(hand.minutes, 0);
   });
 }

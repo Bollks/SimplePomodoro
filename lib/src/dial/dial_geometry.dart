@@ -131,23 +131,32 @@ class DialGeometry {
     required Offset position,
     required num minutes,
   }) {
-    final shortestSide = math.min(size.width, size.height);
-    final center = centerOf(size);
     if (isInsideMinuteHandHub(size: size, position: position)) {
       return true;
     }
 
-    final angle = angleForMinutes(minutes);
-    final direction = Offset(math.sin(angle), -math.cos(angle));
-    final start =
-        center -
-        direction * shortestSide * DialConstants.minuteHandTailRadiusFactor;
-    final end =
-        center +
-        direction * shortestSide * DialConstants.minuteHandTipRadiusFactor;
-    final touchWidth = shortestSide * DialConstants.minuteHandTouchWidthFactor;
+    return _isNearMinuteHandSegment(
+      size: size,
+      position: position,
+      minutes: minutes,
+    );
+  }
 
-    return _distanceToSegment(position, start, end) <= touchWidth;
+  bool isOnMinuteHandStopTarget({
+    required Size size,
+    required Offset position,
+    required num minutes,
+  }) {
+    if (isInsideMinuteHandHub(size: size, position: position)) {
+      return false;
+    }
+
+    return _isNearMinuteHandSegment(
+      size: size,
+      position: position,
+      minutes: minutes,
+      touchWidthMultiplier: 1.4,
+    );
   }
 
   bool isInsideMinuteHandHub({required Size size, required Offset position}) {
@@ -156,6 +165,30 @@ class DialGeometry {
         math.min(size.width, size.height) *
         DialConstants.minuteHandHubRadiusFactor;
     return (position - center).distance <= hubRadius;
+  }
+
+  bool _isNearMinuteHandSegment({
+    required Size size,
+    required Offset position,
+    required num minutes,
+    double touchWidthMultiplier = 1,
+  }) {
+    final shortestSide = math.min(size.width, size.height);
+    final center = centerOf(size);
+    final angle = angleForMinutes(minutes);
+    final direction = Offset(math.sin(angle), -math.cos(angle));
+    final start =
+        center -
+        direction * shortestSide * DialConstants.minuteHandTailRadiusFactor;
+    final end =
+        center +
+        direction * shortestSide * DialConstants.minuteHandTipRadiusFactor;
+    final touchWidth =
+        shortestSide *
+        DialConstants.minuteHandTouchWidthFactor *
+        touchWidthMultiplier;
+
+    return _distanceToSegment(position, start, end) <= touchWidth;
   }
 
   double _distanceToSegment(Offset point, Offset start, Offset end) {
