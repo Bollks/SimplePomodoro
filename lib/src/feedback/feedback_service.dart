@@ -1,8 +1,9 @@
 import 'package:flutter/services.dart';
 
 class FeedbackService {
-  static const MethodChannel _channel =
-      MethodChannel('simple_pomodoro/feedback');
+  static const MethodChannel _channel = MethodChannel(
+    'simple_pomodoro/feedback',
+  );
 
   Future<void> selectionChanged() async {
     try {
@@ -13,10 +14,7 @@ class FeedbackService {
   }
 
   Future<void> completed() async {
-    await Future.wait<void>([
-      vibrate(),
-      playCompletionSound(),
-    ]);
+    await Future.wait<void>([vibrateCompletion(), playCompletionSound()]);
   }
 
   Future<void> vibrate() async {
@@ -24,6 +22,14 @@ class FeedbackService {
       await HapticFeedback.vibrate();
     } catch (_) {
       return;
+    }
+  }
+
+  Future<void> vibrateCompletion() async {
+    try {
+      await _channel.invokeMethod<void>('vibrateCompletion');
+    } catch (_) {
+      await vibrate();
     }
   }
 
