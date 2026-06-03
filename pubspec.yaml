@@ -62,9 +62,9 @@ flutter:
   assets:
     - assets/hat.webp
     - assets/pointer.webp
+    - assets/scale.webp
     - assets/cases/case_01.webp
     - assets/dials/fritillaria.webp
-    - assets/hands/minute_hand_placeholder.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

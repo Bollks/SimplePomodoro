@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:simple_pomodoro/src/dial/dial_background.dart';
 import 'package:simple_pomodoro/src/dial/dial_geometry.dart';
-import 'package:simple_pomodoro/src/dial/dial_painter.dart';
 import 'package:simple_pomodoro/src/dial/dial_timer_page.dart';
 import 'package:simple_pomodoro/src/dial/minute_hand.dart';
 import 'package:simple_pomodoro/src/feedback/feedback_service.dart';
@@ -23,10 +22,8 @@ class FakeFeedbackService extends FeedbackService {
 }
 
 void main() {
-  Finder findDialPaint() {
-    return find.byWidgetPredicate(
-      (widget) => widget is CustomPaint && widget.painter is DialPainter,
-    );
+  Finder findDialSurface() {
+    return find.byKey(const Key('dial-interaction-area'));
   }
 
   DialBackground pageBackground(WidgetTester tester) {
@@ -39,7 +36,7 @@ void main() {
 
   Future<void> startTimerByDraggingHand(WidgetTester tester) async {
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final start =
@@ -52,10 +49,7 @@ void main() {
     await tester.pump();
   }
 
-  Future<void> longPressStopTarget(
-    WidgetTester tester,
-    Offset position,
-  ) async {
+  Future<void> longPressStopTarget(WidgetTester tester, Offset position) async {
     final gesture = await tester.startGesture(position);
     await tester.pump(const Duration(milliseconds: 700));
     await gesture.up();
@@ -68,6 +62,7 @@ void main() {
     );
 
     expect(find.byKey(const Key('dial-face-artwork')), findsOneWidget);
+    expect(find.byKey(const Key('dial-scale-artwork')), findsOneWidget);
     expect(find.byType(MinuteHand), findsOneWidget);
     expect(find.byKey(const Key('dial-center-cap-artwork')), findsOneWidget);
     expect(find.byKey(const Key('dial-case-artwork')), findsOneWidget);
@@ -76,6 +71,9 @@ void main() {
       find.byKey(const Key('dial-face-artwork')),
     );
     final hand = tester.widget<MinuteHand>(find.byType(MinuteHand));
+    final scale = tester.widget<Image>(
+      find.byKey(const Key('dial-scale-artwork')),
+    );
     final centerCap = tester.widget<Image>(
       find.byKey(const Key('dial-center-cap-artwork')),
     );
@@ -87,6 +85,7 @@ void main() {
       (face.image as AssetImage).assetName,
       'assets/dials/fritillaria.webp',
     );
+    expect((scale.image as AssetImage).assetName, 'assets/scale.webp');
     expect(hand.assetName, 'assets/pointer.webp');
     expect((centerCap.image as AssetImage).assetName, 'assets/hat.webp');
     expect((shell.image as AssetImage).assetName, 'assets/cases/case_01.webp');
@@ -97,7 +96,7 @@ void main() {
       MaterialApp(home: DialTimerPage(feedbackService: FakeFeedbackService())),
     );
 
-    expect(findDialPaint(), findsOneWidget);
+    expect(findDialSurface(), findsOneWidget);
     expect(find.text('Start'), findsNothing);
     expect(find.text('End'), findsNothing);
     expect(find.text('5'), findsNothing);
@@ -110,7 +109,7 @@ void main() {
 
     expect(pageBackground(tester).isRunning, isFalse);
 
-    await tester.tapAt(tester.getCenter(findDialPaint()));
+    await tester.tapAt(tester.getCenter(findDialSurface()));
     await tester.pump();
 
     expect(pageBackground(tester).isRunning, isFalse);
@@ -123,7 +122,7 @@ void main() {
     );
 
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final start =
@@ -157,7 +156,7 @@ void main() {
     );
 
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final start = dialTopLeft + geometry.centerOf(dialSize);
@@ -186,7 +185,7 @@ void main() {
     );
 
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final start =
@@ -214,7 +213,7 @@ void main() {
     expect(pageBackground(tester).isRunning, isTrue);
 
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final handPoint =
@@ -239,7 +238,7 @@ void main() {
     await startTimerByDraggingHand(tester);
 
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final awayPoint =
@@ -259,7 +258,7 @@ void main() {
     );
 
     const geometry = DialGeometry();
-    final dialFinder = findDialPaint();
+    final dialFinder = findDialSurface();
     final dialTopLeft = tester.getTopLeft(dialFinder);
     final dialSize = tester.getSize(dialFinder);
     final handPoint =

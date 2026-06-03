@@ -7,7 +7,6 @@ import '../feedback/feedback_service.dart';
 import 'dial_background.dart';
 import 'dial_drag_session.dart';
 import 'dial_geometry.dart';
-import 'dial_painter.dart';
 import 'dial_timer_controller.dart';
 import 'minute_hand.dart';
 
@@ -27,8 +26,12 @@ class _DialTimerPageState extends State<DialTimerPage>
   static const Duration _stopLongPressDuration = Duration(milliseconds: 700);
   static const String _dialFaceAsset = 'assets/dials/fritillaria.webp';
   static const String _dialCaseAsset = 'assets/cases/case_01.webp';
+  static const String _dialScaleAsset = 'assets/scale.webp';
   static const String _minuteHandAsset = 'assets/pointer.webp';
   static const String _centerCapAsset = 'assets/hat.webp';
+  static const double _dialScaleDiameterFactor = 0.9025;
+  static const double _dialScaleWidthFactor = 1.05;
+  static const double _dialScaleVerticalOffset = 3;
   static const double _centerCapDiameterFactor = 0.1785;
 
   final DialGeometry _geometry = const DialGeometry();
@@ -223,6 +226,7 @@ class _DialTimerPageState extends State<DialTimerPage>
                     onPointerUp: _handlePointerUp,
                     onPointerCancel: _handlePointerCancel,
                     child: SizedBox.square(
+                      key: const Key('dial-interaction-area'),
                       dimension: dialSide,
                       child: Stack(
                         fit: StackFit.expand,
@@ -233,10 +237,22 @@ class _DialTimerPageState extends State<DialTimerPage>
                             fit: BoxFit.contain,
                             filterQuality: FilterQuality.high,
                           ),
-                          CustomPaint(
-                            painter: DialPainter(
-                              geometry: _geometry,
-                              drawShell: false,
+                          Transform.translate(
+                            offset: const Offset(0, _dialScaleVerticalOffset),
+                            child: Center(
+                              child: SizedBox(
+                                width:
+                                    dialSide *
+                                    _dialScaleDiameterFactor *
+                                    _dialScaleWidthFactor,
+                                height: dialSide * _dialScaleDiameterFactor,
+                                child: Image.asset(
+                                  _dialScaleAsset,
+                                  key: const Key('dial-scale-artwork'),
+                                  fit: BoxFit.contain,
+                                  filterQuality: FilterQuality.high,
+                                ),
+                              ),
                             ),
                           ),
                           MinuteHand(
